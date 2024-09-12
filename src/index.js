@@ -3,11 +3,20 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { AuthProvider } from './contexts/AuthContext'
+import { ChannelProvider } from './contexts/ChannelContext';
+import { MessageProvider } from './contexts/MessageContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <MessageProvider>
+        <ChannelProvider>
+          <App />
+        </ChannelProvider>
+      </MessageProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
 
