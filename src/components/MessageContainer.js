@@ -36,6 +36,7 @@ const MessageContainer = ({ channel }) => {
   };
 
   useEffect(() => {
+    console.log("THE SELECTED", selectedChannel);
     if (selectedChannel.has_joined) {
       fetchMessagesByChannelId(selectedChannel._id);
       setFetchedMessages(messages);
@@ -50,76 +51,78 @@ const MessageContainer = ({ channel }) => {
   }, [messages]);
   return (
     <Box sx={{ position: "relative", height: "100%" }}>
-      <Box>
-        <Box
-          sx={{
-            paddingLeft: 2,
-            paddingRight: 2,
-            height: "720px",
-            overflow: "auto",
-          }}
-        >
-          {messages.map((msg) => (
-            <div
-              key={msg._id}
-              style={{
-                marginBottom: 10,
-                display: "flex",
-                justifyContent: msg.is_mine ? "end" : "start",
-              }}
+        {selectedChannel.has_joined && (
+        <Box>
+            <Box
+            sx={{
+                paddingLeft: 2,
+                paddingRight: 2,
+                height: "720px",
+                overflow: "auto",
+            }}
             >
-              {!msg.is_mine ? (
-                <Box
-                  sx={(theme) => ({
-                    width: "40px",
-                    height: "40px",
-                    backgroundColor: theme.palette.grey[500],
-                    borderRadius: "50%",
-                    color: "whitesmoke",
+            {messages.map((msg) => (
+                <div
+                key={msg._id}
+                style={{
+                    marginBottom: 10,
                     display: "flex",
-                    justifyContent: "center",
-                    marginRight: 2,
-                    alignItems: "center",
-                  })}
+                    justifyContent: msg.is_mine ? "end" : "start",
+                }}
                 >
-                  {msg.sender.username[0]}
-                </Box>
-              ) : (
-                <></>
-              )}
-              <Box
-                sx={(theme) => ({
-                  backgroundColor: msg.is_mine
-                    ? "#dcf8c6"
-                    : theme.palette.grey[300],
-                  // padding: 2,
-                  paddingTop: 1,
-                  paddingBottom: 1,
-                  paddingLeft: 1,
-                  paddingRight: 1,
-                  borderRadius: 2,
-                  maxWidth: "70%",
-                  wordBreak: "break-word",
-                })}
-              >
-                {!msg.is_mine && msg.sender.username}
-                <Typography
-                  sx={{
+                {!msg.is_mine ? (
+                    <Box
+                    sx={(theme) => ({
+                        width: "40px",
+                        height: "40px",
+                        backgroundColor: theme.palette.grey[500],
+                        borderRadius: "50%",
+                        color: "whitesmoke",
+                        display: "flex",
+                        justifyContent: "center",
+                        marginRight: 2,
+                        alignItems: "center",
+                    })}
+                    >
+                    {msg.sender.username[0]}
+                    </Box>
+                ) : (
+                    <></>
+                )}
+                <Box
+                    sx={(theme) => ({
+                    backgroundColor: msg.is_mine
+                        ? "#dcf8c6"
+                        : theme.palette.grey[300],
+                    // padding: 2,
+                    paddingTop: 1,
+                    paddingBottom: 1,
                     paddingLeft: 1,
-                    paddingRight: 2,
-                    backgroundColor: !msg.is_mine ? "white" : "",
-                    borderRadius: 1,
-                    marginTop: 1,
-                  }}
+                    paddingRight: 1,
+                    borderRadius: 2,
+                    maxWidth: "70%",
+                    wordBreak: "break-word",
+                    })}
                 >
-                  {msg.content}
-                </Typography>
-              </Box>
-            </div>
-          ))}
-          <div ref={endOfMessagesRef} />
+                    {!msg.is_mine && msg.sender.username}
+                    <Typography
+                    sx={{
+                        paddingLeft: 1,
+                        paddingRight: 2,
+                        backgroundColor: !msg.is_mine ? "white" : "",
+                        borderRadius: 1,
+                        marginTop: 1,
+                    }}
+                    >
+                    {msg.content}
+                    </Typography>
+                </Box>
+                </div>
+            ))}
+            <div ref={endOfMessagesRef} />
+            </Box>
         </Box>
-      </Box>
+        )}
       {selectedChannel.has_joined ? (
         <Box
           sx={{
@@ -152,7 +155,6 @@ const MessageContainer = ({ channel }) => {
         </Box>
       ) : (
         <>
-          {!selectedChannel.has_joined && (
             <div
               style={{
                 display: "flex",
@@ -197,7 +199,6 @@ const MessageContainer = ({ channel }) => {
                 </Box>
               </Box>
             </div>
-          )}
         </>
       )}
     </Box>
