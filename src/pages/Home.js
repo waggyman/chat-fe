@@ -27,7 +27,7 @@ const Home = () => {
   useEffect(() => {
     setOnline(user._id);
     socket.on('sendChannelMessage', (data) => {
-      console.log("Messagereceived", data);
+      console.log("Messagereceived", data, selectedChannel);
       if (selectedChannel) {
         if (data.channelId === selectedChannel._id) {
           fetchMessagesByChannelId(data.channelId);
