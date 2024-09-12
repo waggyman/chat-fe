@@ -13,11 +13,13 @@ import { LiveHelp } from "@mui/icons-material";
 import socket, { setOnline } from "../utils/websocket";
 import { useAuth } from "../contexts/AuthContext";
 import { useMessage } from "../contexts/MessageContext";
+import { useChannel } from "../contexts/ChannelContext";
 
 const Home = () => {
-  const [selectedChannel, setSelectedChannel] = useState(null);
   const { user } = useAuth();
+  const [selectedChannel, setSelectedChannel] = useState();
   const { fetchMessagesByChannelId } = useMessage();
+  const { activeChannel, setActiveChannel } = useChannel();
   const [value, setValue] = useState('channels');
 
   const handleChange = (event, newValue) => {
@@ -26,17 +28,29 @@ const Home = () => {
 
   useEffect(() => {
     setOnline(user._id);
-    socket.on('sendChannelMessage', (data) => {
-      console.log("Messagereceived", data, selectedChannel);
+  }, []);
+
+  const handleSelectChannel = (channel) => {
+    setSelectedChannel(channel);
+    console.log("CHANNEL", channel)
+  }
+
+  useEffect(() => {
+    const handleMessage = (data) => {
+      console.log("Message received", data, selectedChannel);
       if (selectedChannel) {
         if (data.channelId === selectedChannel._id) {
           fetchMessagesByChannelId(data.channelId);
         }
-        console.log("Message received", data);
       }
-    });
+    };
+  
+    socket.on('sendChannelMessage', handleMessage);
+    return () => {
+      socket.off('sendChannelMessage', handleMessage);
+    };
+  }, [selectedChannel])
 
-  }, []);
   return (
     <div style={{marginTop: 20}}>
       <Box
@@ -62,7 +76,7 @@ const Home = () => {
             <TabPanel value="channels" sx={(theme) => ({
               padding: 0
             })}>
-              <ChannelList onSelectChannel={(channel) => setSelectedChannel(channel)} />
+              <ChannelList onSelectChannel={(channel) => handleSelectChannel((channel))} />
             </TabPanel>
             <TabPanel value="users"  sx={(theme) => ({
               padding: 0

@@ -47,7 +47,6 @@ const ChannelList = ({ onSelectChannel }) => {
   };
   const handleChannelClick = (channel) => {
     setSelectedChannelId(channel._id);
-    setActiveChannel(channel);
     setMessages([]);
     onSelectChannel(channel);
   };

@@ -34,7 +34,6 @@ export const MessageProvider = ({ children }) => {
             Authorization: `Bearer ${token}`, 
           },
         });
-        console.log(response.data.data)
         // setMessages(response.data.data);
       } catch (error) {
         console.error('Error fetching channels:', error);
