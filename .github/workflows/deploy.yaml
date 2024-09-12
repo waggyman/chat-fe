@@ -1,4 +1,4 @@
-name: Deploy Express to GCP
+name: Deploy React APP to GCP
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t gcr.io/personal-gcp-new/test-chat-fe-app .
+          docker build -t gcr.io/personal-gcp-new/test-chat-fe-app --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} .
 
       - name: Push docker image
         run: |
