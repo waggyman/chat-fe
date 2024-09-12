@@ -1,36 +1,66 @@
-import React, { useState } from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import React, { useState } from "react";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Typography,
+} from "@mui/material";
+import { useUser } from "../contexts/UserContext";
 
-const users = [
-  { id: '1', name: 'Arigi' },
-  { id: '2', name: 'Arigi2' },
-  { id: '3', name: 'Arigi3' },
-];
+const UserList = ({ onSelectUser }) => {
+  const [selectedChannelId, setSelectedChannelId] = useState(null);
+  const { users } = useUser();
 
-const UserList = ({ onSelectChannel }) => {
-    const [selectedChannelId, setSelectedChannelId] = useState(null);
-
-  const handleChannelClick = (channel) => {
-    setSelectedChannelId(channel.id);
-    onSelectChannel(channel);
+  const handleChannelClick = (user) => {
+    setSelectedChannelId(user._id);
+    onSelectUser(user);
   };
+
   return (
-    <List sx={{paddingBottom: 0}}>
-      {users.map((channel) => (
-        <ListItem key={channel.id} disablePadding>
+    <List sx={{ paddingBottom: 0 }}>
+      {users.map((user) => (
+        <ListItem key={user._id} disablePadding>
           <ListItemButton
-            onClick={() => handleChannelClick(channel)}
+            onClick={() => handleChannelClick(user)}
             sx={{
-              backgroundColor: channel.id === selectedChannelId ? '#e9ecef' : 'transparent',
-              '&:hover': {
-                backgroundColor: channel.id === selectedChannelId ? '#e9ecef' : '#f1f1f1',
+              backgroundColor:
+                user._id === selectedChannelId ? "#e9ecef" : "transparent",
+              "&:hover": {
+                backgroundColor:
+                  user._id === selectedChannelId ? "#e9ecef" : "#f1f1f1",
               },
             }}
           >
-            <Box sx={(theme) => ({ width: '30px', height: '30px', backgroundColor: theme.palette.grey[500], borderRadius: '50%', marginRight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',fontSize: '12px', color: 'white'})}>
-                A
+            <Box
+              sx={(theme) => ({
+                width: "40px",
+                height: "40px",
+                backgroundColor: theme.palette.grey[500],
+                borderRadius: "50%",
+                marginRight: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                color: "white",
+                position: 'relative'
+              })}
+            >
+              A
+              <Box sx={(theme) => ({ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: (user.is_online) ? '#41d347' : theme.palette.grey[300], position: 'absolute', bottom: '3px', right: '0', border: (!user.is_online) ? 'solid white 0.5px' : 'none'})} />
             </Box>
-            <ListItemText primary={channel.name} />
+            <Box sx={{display: 'flex', justifyContent: 'justify-between', alignItems: 'center'}}>
+                <Box>
+                    <Typography>
+                        {user.username}
+                    </Typography>
+                    <Typography fontSize={14}>
+                        {user.email}
+                    </Typography>
+                </Box>
+            </Box>
           </ListItemButton>
         </ListItem>
       ))}

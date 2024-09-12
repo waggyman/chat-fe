@@ -12,67 +12,244 @@ import {
 import LiveHelp from "@mui/icons-material/LiveHelp";
 import { useChannel } from "../contexts/ChannelContext";
 import { useMessage } from "../contexts/MessageContext";
+import { useUser } from "../contexts/UserContext";
 
-const MessageContainer = ({ channel }) => {
+const MessageContainer = ({ data, type }) => {
   const endOfMessagesRef = useRef(null);
   const { channels, joinChannel } = useChannel();
-  const { messages, fetchMessagesByChannelId, sendMessageToChannel } =
-    useMessage();
+  const { users } = useUser();
+
+  const {
+    messages,
+    fetchMessagesByChannelId,
+    sendMessageToChannel,
+    sendDirectMessage,
+    fetchMessagesByReceiverId,
+  } = useMessage();
   const [fetchedMessages, setFetchedMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const selectedChannel = channels.find((ch) => ch._id === channel._id);
+  const [selectedType, setSelectedType] = useState("channels");
+
+  const selectedData =
+    type == "channels"
+      ? channels.find((ch) => ch._id === data._id)
+      : users.find((u) => u._id === data._id);
 
   const handleSendMessage = async () => {
-    await sendMessageToChannel(selectedChannel._id, newMessage);
-    fetchMessagesByChannelId(selectedChannel._id);
-    setFetchedMessages(messages);
+    if (type == "channels") {
+      await sendMessageToChannel(selectedData._id, newMessage);
+      if (selectedData) {
+        fetchMessagesByChannelId(selectedData._id);
+      }
+    } else {
+      await sendDirectMessage(selectedData._id, newMessage);
+    }
+
     setNewMessage("");
   };
 
   const handleJoinChannel = () => {
-    joinChannel(channel._id);
-    console.log("MESSAGES", messages, selectedChannel);
+    joinChannel(data._id);
     setFetchedMessages(messages);
   };
 
   useEffect(() => {
-    console.log("THE SELECTED", selectedChannel);
-    if (selectedChannel.has_joined) {
-      fetchMessagesByChannelId(selectedChannel._id);
-      setFetchedMessages(messages);
+    setSelectedType(type);
+    if (type == "channels" && selectedData) {
+      if (selectedData.has_joined) {
+        fetchMessagesByChannelId(selectedData._id);
+        setFetchedMessages(messages);
+      } else {
+        setFetchedMessages([]);
+      }
     } else {
-      console.log("ABC", channel._id);
-      setFetchedMessages([]);
+      fetchMessagesByReceiverId(selectedData._id);
+      setFetchedMessages(messages);
     }
-  }, [selectedChannel]);
+  }, [selectedData]);
 
   useEffect(() => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
   return (
     <Box sx={{ position: "relative", height: "100%" }}>
-        {selectedChannel.has_joined && (
-        <Box>
+      {type == "channels" ? (
+        <>
+          {selectedData.has_joined && (
+            <Box sx={{ paddingTop: 2 }}>
+              <Box
+                sx={{
+                  paddingLeft: 2,
+                  paddingRight: 2,
+                  height: "720px",
+                  overflow: "auto",
+                }}
+              >
+                {messages.map((msg) => (
+                  <div
+                    key={msg._id}
+                    style={{
+                      marginBottom: 10,
+                      display: "flex",
+                      justifyContent: msg.is_mine ? "end" : "start",
+                    }}
+                  >
+                    {!msg.is_mine ? (
+                      <Box
+                        sx={(theme) => ({
+                          width: "40px",
+                          height: "40px",
+                          backgroundColor: theme.palette.grey[500],
+                          borderRadius: "50%",
+                          color: "whitesmoke",
+                          display: "flex",
+                          justifyContent: "center",
+                          marginRight: 2,
+                          alignItems: "center",
+                        })}
+                      >
+                        {msg.sender.username[0]}
+                      </Box>
+                    ) : (
+                      <></>
+                    )}
+                    <Box
+                      sx={(theme) => ({
+                        backgroundColor: msg.is_mine
+                          ? "#dcf8c6"
+                          : theme.palette.grey[300],
+                        // padding: 2,
+                        paddingTop: 1,
+                        paddingBottom: 1,
+                        paddingLeft: 1,
+                        paddingRight: 1,
+                        borderRadius: 2,
+                        maxWidth: "70%",
+                        wordBreak: "break-word",
+                      })}
+                    >
+                      {!msg.is_mine && msg.sender.username}
+                      <Typography
+                        sx={{
+                          paddingLeft: 1,
+                          paddingRight: 2,
+                          backgroundColor: !msg.is_mine ? "white" : "",
+                          borderRadius: 1,
+                          marginTop: 1,
+                        }}
+                      >
+                        {msg.content}
+                      </Typography>
+                    </Box>
+                  </div>
+                ))}
+                <div ref={endOfMessagesRef} />
+              </Box>
+            </Box>
+          )}
+          {selectedData.has_joined ? (
             <Box
-            sx={{
+              sx={{
+                position: "absolute",
+                bottom: 0,
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Type a message"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSendMessage();
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSendMessage}
+                sx={{ height: "56px" }}
+              >
+                Send
+              </Button>
+            </Box>
+          ) : (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Box sx={{ width: "300px" }}>
+                  <Typography textAlign={"center"} sx={{ marginBottom: 2 }}>
+                    <LiveHelp sx={{ fontSize: "40px" }} />
+                  </Typography>
+                  <Typography fontSize={18} textAlign={"center"}>
+                    You haven't joined this channel
+                  </Typography>
+                  <Typography
+                    fontSize={14}
+                    color={"#8a8a8a"}
+                    textAlign={"center"}
+                  >
+                    {selectedData.users.length} users already joined the channel
+                  </Typography>
+                  <Typography mt={8} textAlign={"center"}>
+                    Do you want to join the channel?
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mt: 2,
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={handleJoinChannel}
+                      sx={{ width: "200px" }}
+                    >
+                      Join
+                    </Button>
+                  </Box>
+                </Box>
+              </div>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <Box sx={{ paddingTop: 2 }}>
+            <Box
+              sx={{
                 paddingLeft: 2,
                 paddingRight: 2,
                 height: "720px",
                 overflow: "auto",
-            }}
+              }}
             >
-            {messages.map((msg) => (
+              {messages.map((msg) => (
                 <div
-                key={msg._id}
-                style={{
+                  key={msg._id}
+                  style={{
                     marginBottom: 10,
                     display: "flex",
                     justifyContent: msg.is_mine ? "end" : "start",
-                }}
+                  }}
                 >
-                {!msg.is_mine ? (
+                  {!msg.is_mine ? (
                     <Box
-                    sx={(theme) => ({
+                      sx={(theme) => ({
                         width: "40px",
                         height: "40px",
                         backgroundColor: theme.palette.grey[500],
@@ -82,123 +259,75 @@ const MessageContainer = ({ channel }) => {
                         justifyContent: "center",
                         marginRight: 2,
                         alignItems: "center",
-                    })}
+                      })}
                     >
-                    {msg.sender.username[0]}
+                      {msg.sender.username[0]}
                     </Box>
-                ) : (
+                  ) : (
                     <></>
-                )}
-                <Box
+                  )}
+                  <Box
                     sx={(theme) => ({
-                    backgroundColor: msg.is_mine
+                      backgroundColor: msg.is_mine
                         ? "#dcf8c6"
                         : theme.palette.grey[300],
-                    // padding: 2,
-                    paddingTop: 1,
-                    paddingBottom: 1,
-                    paddingLeft: 1,
-                    paddingRight: 1,
-                    borderRadius: 2,
-                    maxWidth: "70%",
-                    wordBreak: "break-word",
+                      // padding: 2,
+                      paddingTop: 1,
+                      paddingBottom: 1,
+                      paddingLeft: 1,
+                      paddingRight: 1,
+                      borderRadius: 2,
+                      maxWidth: "70%",
+                      wordBreak: "break-word",
                     })}
-                >
+                  >
                     {!msg.is_mine && msg.sender.username}
                     <Typography
-                    sx={{
+                      sx={{
                         paddingLeft: 1,
                         paddingRight: 2,
                         backgroundColor: !msg.is_mine ? "white" : "",
                         borderRadius: 1,
                         marginTop: 1,
-                    }}
+                      }}
                     >
-                    {msg.content}
+                      {msg.content}
                     </Typography>
-                </Box>
+                  </Box>
                 </div>
-            ))}
-            <div ref={endOfMessagesRef} />
+              ))}
+              <div ref={endOfMessagesRef} />
             </Box>
-        </Box>
-        )}
-      {selectedChannel.has_joined ? (
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Type a message"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSendMessage();
-              }
+          </Box>
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 0,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
             }}
-          />
-          <Button
-            variant="contained"
-            onClick={handleSendMessage}
-            sx={{ height: "56px" }}
           >
-            Send
-          </Button>
-        </Box>
-      ) : (
-        <>
-            <div
-              style={{
-                display: "flex",
-                width: "100%",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Type a message"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSendMessage();
+                }
               }}
+            />
+            <Button
+              variant="contained"
+              onClick={handleSendMessage}
+              sx={{ height: "56px" }}
             >
-              <Box sx={{ width: "300px" }}>
-                <Typography textAlign={"center"} sx={{ marginBottom: 2 }}>
-                  <LiveHelp sx={{ fontSize: "40px" }} />
-                </Typography>
-                <Typography fontSize={18} textAlign={"center"}>
-                  You haven't joined this channel
-                </Typography>
-                <Typography
-                  fontSize={14}
-                  color={"#8a8a8a"}
-                  textAlign={"center"}
-                >
-                  {channel.users.length} users already joined the channel
-                </Typography>
-                <Typography mt={8} textAlign={"center"}>
-                  Do you want to join the channel?
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    mt: 2,
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    onClick={handleJoinChannel}
-                    sx={{ width: "200px" }}
-                  >
-                    Join
-                  </Button>
-                </Box>
-              </Box>
-            </div>
+              Send
+            </Button>
+          </Box>
         </>
       )}
     </Box>

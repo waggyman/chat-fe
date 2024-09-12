@@ -18,7 +18,9 @@ import { useChannel } from "../contexts/ChannelContext";
 const Home = () => {
   const { user } = useAuth();
   const [selectedChannel, setSelectedChannel] = useState();
-  const { fetchMessagesByChannelId } = useMessage();
+  const [selectedUser, setSelectedUser] = useState();
+
+  const { fetchMessagesByChannelId, fetchMessagesByReceiverId } = useMessage();
   const { activeChannel, setActiveChannel } = useChannel();
   const [value, setValue] = useState('channels');
 
@@ -32,12 +34,34 @@ const Home = () => {
 
   const handleSelectChannel = (channel) => {
     setSelectedChannel(channel);
-    console.log("CHANNEL", channel)
+    setSelectedUser();
+  }
+
+  const handleSelectUser = (user) => {
+    setSelectedUser(user);
+    setSelectedChannel()
   }
 
   useEffect(() => {
     const handleMessage = (data) => {
-      console.log("Message received", data, selectedChannel);
+      if (selectedUser) {
+        if ((data.message.sender === selectedUser._id && data.message.receiver === user._id)) {
+          fetchMessagesByReceiverId(data.message.sender);
+        }
+        if ((data.message.receiver === selectedUser._id && data.message.sender === user._id)) {
+          fetchMessagesByReceiverId(data.message.receiver);
+        }
+      }
+    };
+  
+    socket.on('sendDirectMessage', handleMessage);
+    return () => {
+      socket.off('sendDirectMessage', handleMessage);
+    };
+  }, [selectedUser])
+
+  useEffect(() => {
+    const handleMessage = (data) => {
       if (selectedChannel) {
         if (data.channelId === selectedChannel._id) {
           fetchMessagesByChannelId(data.channelId);
@@ -52,7 +76,7 @@ const Home = () => {
   }, [selectedChannel])
 
   return (
-    <div style={{marginTop: 20}}>
+    <div style={{marginTop: 20, backgroundColor: 'white'}}>
       <Box
         sx={{
           display: "flex",
@@ -81,7 +105,7 @@ const Home = () => {
             <TabPanel value="users"  sx={(theme) => ({
               padding: 0
             })}>
-              <UserList onSelectChannel={(user) => console.log(user)} />
+              <UserList onSelectUser={(user) => handleSelectUser(user)} />
             </TabPanel>
           </TabContext>
         </Box>
@@ -95,26 +119,32 @@ const Home = () => {
           })}
         >
           {selectedChannel ? (
-            <MessageContainer channel={selectedChannel} key={selectedChannel._id} />
+            <MessageContainer type="channels" data={selectedChannel} key={selectedChannel._id} />
           ) : (
-            <div
-              style={{
-                display: "flex",
-                width: "100%",
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Box sx={{ width: "300px" }}>
-                <Typography textAlign={"center"} sx={{ marginBottom: 2 }}>
-                  <LiveHelp sx={{ fontSize: "40px" }} />
-                </Typography>
-                <Typography fontSize={18} textAlign={"center"}>
-                  Select Channel to start messaging
-                </Typography>
-              </Box>
-            </div>
+            <>
+              {selectedUser ? (
+                <MessageContainer type="users" data={selectedUser} key={selectedUser._id} />
+              ) : (
+                <div
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Box sx={{ width: "300px" }}>
+                  <Typography textAlign={"center"} sx={{ marginBottom: 2 }}>
+                    <LiveHelp sx={{ fontSize: "40px" }} />
+                  </Typography>
+                  <Typography fontSize={18} textAlign={"center"}>
+                    Select { value === 'channels' ? 'Channel' : 'User' } to start messaging
+                  </Typography>
+                </Box>
+              </div>
+              )}
+            </>
           )}
         </Box>
       </Box>

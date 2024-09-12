@@ -25,6 +25,21 @@ export const MessageProvider = ({ children }) => {
       }
   }
 
+  const fetchMessagesByReceiverId = async (receiverId) => {
+    if (!token) return;
+    try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/${receiverId}/messages`, {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        });
+
+        setMessages(response.data.data);
+      } catch (error) {
+        console.error('Error fetching user messages:', error);
+      }
+  }
+
   const sendMessageToChannel = async (channelId, message) => {
     // callAPI
     if (!token) return;
@@ -41,8 +56,23 @@ export const MessageProvider = ({ children }) => {
     // await fetchMessagesByChannelId(channelId);
   }
 
+  const sendDirectMessage = async (receiver, message) => {
+    // callAPI
+    if (!token) return;
+    try {
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/${receiver}/send-message`, { content: message }, {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        });
+
+      } catch (error) {
+        console.error('Error fetching channels:', error);
+      }
+  }
+
   return (
-    <MessageContext.Provider value={{ messages, fetchMessagesByChannelId, sendMessageToChannel, setMessages }}>
+    <MessageContext.Provider value={{ messages, fetchMessagesByChannelId, sendMessageToChannel, setMessages, fetchMessagesByReceiverId, sendDirectMessage }}>
       {children}
     </MessageContext.Provider>
   );

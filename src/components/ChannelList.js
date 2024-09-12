@@ -58,9 +58,7 @@ const ChannelList = ({ onSelectChannel }) => {
       }, 5000);
     }
   }, [modalErrorMessage]);
-  useEffect(() => {
-    console.log("AVA", channels);
-  }, [channels]);
+
   return (
     <List sx={{ paddingBottom: 0 }}>
       <Box sx={{ paddingLeft: "16px", fontSize: 12, marginBottom: 2 }}>

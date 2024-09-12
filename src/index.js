@@ -6,15 +6,18 @@ import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './contexts/AuthContext'
 import { ChannelProvider } from './contexts/ChannelContext';
 import { MessageProvider } from './contexts/MessageContext';
+import { UserProvider } from './contexts/UserContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <AuthProvider>
       <MessageProvider>
-        <ChannelProvider>
-          <App />
-        </ChannelProvider>
+        <UserProvider>
+          <ChannelProvider>
+            <App />
+          </ChannelProvider>
+        </UserProvider>
       </MessageProvider>
     </AuthProvider>
   </React.StrictMode>
