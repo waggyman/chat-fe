@@ -53,7 +53,7 @@ const Login = () => {
           justifyContent: "center",
         }}
       >
-        <Box sx={{ width: "400px", backgroundColor: "white" }}>
+        <Box sx={{ width: "400px", backgroundColor: "white", paddingTop: '20px', paddingBottom: '20px', paddingRight: '35px', paddingLeft: '35px' }}>
           <Typography
             variant="h4"
             textAlign={"center"}
